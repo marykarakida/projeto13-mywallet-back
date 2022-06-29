@@ -1,5 +1,7 @@
 import express from 'express';
 
+import validateNewUser from '../middlewares/userValidation.js';
+
 import {
 	registerUser,
 	allowAppAccess,
@@ -7,7 +9,7 @@ import {
 
 const router = express.Router();
 
-router.post('/login', registerUser);
-router.post('/sign-up', allowAppAccess);
+router.post('/login', allowAppAccess);
+router.post('/sign-up', validateNewUser, registerUser);
 
 export default router;

@@ -1,25 +1,39 @@
-import dotenv from 'dotenv';
-import { MongoClient } from 'mongodb';
+import bcrypt from 'bcrypt';
 
-dotenv.config();
+import { getDb } from './connection.js';
 
-const MONGO_URI = process.env.MONGO_URI;
-let db;
+export async function findUserInDb(user, res) {
+	const { email } = user;
 
-export function connectToDb(startServer) {
-	const mongoClient = new MongoClient(MONGO_URI);
+	try {
+		const db = getDb();
+		const registeredUserCollection = db.collection('registered_users');
 
-	mongoClient
-		.connect()
-		.then(() => {
-			db = mongoClient.db('bate_papo_uol');
-			startServer();
-		})
-		.catch((err) => {
-			console.log('Failed to connect to MongoDb', err);
-		});
+		return await registeredUserCollection.findOne({ email });
+	} catch (err) {
+		console.error(err);
+		return res.status(500).send();
+	}
 }
 
-export function getDb() {
-	return db;
+export async function createNewUser(user, res) {
+	delete user.passwordConfirmation;
+
+	try {
+		const db = getDb();
+		const registeredUserCollection = db.collection('registered_users');
+
+		const salt = await bcrypt.genSalt();
+		const hashedPassword = await bcrypt.hash(user.password, salt);
+
+		const newUser = {
+			...user,
+			password: hashedPassword,
+		};
+
+		await registeredUserCollection.insertOne(newUser);
+	} catch (err) {
+		console.error(err);
+		return res.status(500).send();
+	}
 }
