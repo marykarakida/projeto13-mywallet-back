@@ -1,4 +1,4 @@
-import { createNewUser } from '../database/dbAccess.js';
+import { createNewUser, createNewSession } from '../database/dbAccess.js';
 
 export function registerUser(req, res, next) {
 	const user = res.locals.user;
@@ -13,9 +13,18 @@ export function registerUser(req, res, next) {
 	}
 }
 
-export function allowAppAccess(req, res, next) {
+export async function allowAppAccess(req, res, next) {
+	const { name, _id } = res.locals.user;
+
 	try {
-		res.status(200).send();
+		const token = await createNewSession(_id);
+
+		const userInfo = {
+			name,
+			token,
+		};
+
+		res.status(201).send(userInfo);
 	} catch (err) {
 		console.error('Error while allowing user access to app', err.message);
 		next(err);

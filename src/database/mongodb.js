@@ -15,4 +15,6 @@ mongoClient
 		console.log('Failed to connect to MongoDb', err);
 	});
 
-export default db;
+export default function getDb() {
+	return db;
+}
