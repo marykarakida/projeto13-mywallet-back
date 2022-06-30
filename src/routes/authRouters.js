@@ -1,6 +1,9 @@
 import express from 'express';
 
-import validateNewUser from '../middlewares/userValidation.js';
+import {
+	validateNewUser,
+	validateUser,
+} from '../middlewares/userValidation.js';
 
 import {
 	registerUser,
@@ -9,7 +12,7 @@ import {
 
 const router = express.Router();
 
-router.post('/login', allowAppAccess);
+router.post('/login', validateUser, allowAppAccess);
 router.post('/sign-up', validateNewUser, registerUser);
 
 export default router;

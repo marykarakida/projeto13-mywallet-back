@@ -1,4 +1,4 @@
-import { createNewUser } from '../db/db.js';
+import { createNewUser } from '../database/dbAccess.js';
 
 export function registerUser(req, res, next) {
 	const user = res.locals.user;

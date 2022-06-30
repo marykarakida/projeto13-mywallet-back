@@ -1,12 +1,11 @@
 import bcrypt from 'bcrypt';
 
-import { getDb } from './connection.js';
+import db from './mongodb.js';
 
 export async function findUserInDb(user, res) {
 	const { email } = user;
 
 	try {
-		const db = getDb();
 		const registeredUserCollection = db.collection('registered_users');
 
 		return await registeredUserCollection.findOne({ email });
@@ -20,7 +19,6 @@ export async function createNewUser(user, res) {
 	delete user.passwordConfirmation;
 
 	try {
-		const db = getDb();
 		const registeredUserCollection = db.collection('registered_users');
 
 		const salt = await bcrypt.genSalt();
