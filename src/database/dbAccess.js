@@ -1,4 +1,5 @@
 import bcrypt from 'bcrypt';
+import dayjs from 'dayjs';
 import { v4 as uuid } from 'uuid';
 
 import getDb from './mongodb.js';
@@ -11,7 +12,6 @@ export async function findUserInDb(query, res) {
 		return await registeredUserCollection.findOne(query);
 	} catch (err) {
 		console.error(err);
-		return res.status(500).send();
 	}
 }
 
@@ -33,7 +33,6 @@ export async function createNewUser(user, res) {
 		await registeredUserCollection.insertOne(newUser);
 	} catch (err) {
 		console.error(err);
-		return res.status(500).send();
 	}
 }
 
@@ -54,7 +53,6 @@ export async function createNewSession(userId) {
 		return token;
 	} catch (err) {
 		console.error(err);
-		return res.status(500).send();
 	}
 }
 
@@ -66,7 +64,6 @@ export async function findUserInSession(token) {
 		return user;
 	} catch (err) {
 		console.error(err);
-		return res.status(500).send();
 	}
 }
 
@@ -78,17 +75,39 @@ export async function createAccount(user, account) {
 
 		const newAccount = {
 			...account,
+			value: Number(account.value),
+			date: dayjs().format('DD/MM'),
 			userId,
 		};
 		await db.collection('accounts').insertOne(newAccount);
 
-		const a = await db.collection('accounts').find().toArray();
-
-		console.log(a);
-
 		return user;
 	} catch (err) {
 		console.error(err);
-		return res.status(500).send();
+	}
+}
+
+export async function getUserAccounts(token) {
+	try {
+		const db = getDb();
+		const { userId } = await findUserInSession(token);
+
+		const accounts = await db
+			.collection('accounts')
+			.find({ userId })
+			.toArray();
+		const accountsInfo = await db
+			.collection('accounts')
+			.aggregate([
+				{ $match: { userId } },
+				{ $group: { _id: '$type', total: { $sum: '$value' } } },
+			])
+			.toArray();
+
+		const totalBalance = accountsInfo[0].total - accountsInfo[1].total;
+
+		return { accounts, totalBalance };
+	} catch (err) {
+		console.error(err);
 	}
 }

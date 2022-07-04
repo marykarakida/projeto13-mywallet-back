@@ -1,8 +1,17 @@
-import { createAccount } from '../database/dbAccess.js';
+import { createAccount, getUserAccounts } from '../database/dbAccess.js';
 
-export function getAccountsList() {}
+export async function getAccountsList(req, res, next) {
+	const { token } = res.locals;
 
-export function getTotalBalance() {}
+	try {
+		const { accounts, totalBalance } = await getUserAccounts(token);
+
+		res.status(201).send({ accounts, totalBalance });
+	} catch (err) {
+		console.error('Error while getting ledger', err.message);
+		next(err);
+	}
+}
 
 export function postAccount(req, res, next) {
 	const { user, account } = res.locals;
