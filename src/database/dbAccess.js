@@ -81,8 +81,6 @@ export async function createAccount(token, account) {
 			userId,
 		};
 		await db.collection('accounts').insertOne(newAccount);
-
-		return user;
 	} catch (err) {
 		console.error(err);
 	}
@@ -106,7 +104,15 @@ export async function getUserAccounts(token) {
 			])
 			.toArray();
 
-		const totalBalance = accountsInfo[0].total - accountsInfo[1].total;
+		let totalBalance = 0;
+
+		for (let i = 0; i < accountsInfo.length; i++) {
+			if (accountsInfo[i]._id === 'deposit') {
+				totalBalance += accountsInfo[i].total;
+			} else {
+				totalBalance -= accountsInfo[i].total;
+			}
+		}
 
 		return { accounts, totalBalance };
 	} catch (err) {
