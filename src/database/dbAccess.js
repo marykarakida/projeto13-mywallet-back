@@ -1,5 +1,6 @@
 import bcrypt from 'bcrypt';
 import dayjs from 'dayjs';
+import { ObjectId } from 'mongodb';
 import { v4 as uuid } from 'uuid';
 
 import getDb from './mongodb.js';
@@ -67,11 +68,11 @@ export async function findUserInSession(token) {
 	}
 }
 
-export async function createAccount(user, account) {
-	const { userId } = user;
-
+export async function createAccount(token, account) {
 	try {
 		const db = getDb();
+
+		const { userId } = await findUserInSession(token);
 
 		const newAccount = {
 			...account,
@@ -101,13 +102,79 @@ export async function getUserAccounts(token) {
 			.aggregate([
 				{ $match: { userId } },
 				{ $group: { _id: '$type', total: { $sum: '$value' } } },
+				{ $sort: { _id: 1 } },
 			])
 			.toArray();
 
-		const totalBalance = accountsInfo[1].total - accountsInfo[0].total;
+		const totalBalance = accountsInfo[0].total - accountsInfo[1].total;
 
 		return { accounts, totalBalance };
 	} catch (err) {
 		console.error(err);
+	}
+}
+
+export async function validateToken(token, res) {
+	if (!token) {
+		res.status(401).send('Access denied');
+		return false;
+	}
+
+	try {
+		const userInSession = await findUserInSession(token);
+
+		if (!userInSession) {
+			res.status(401).send('Access denied');
+			return false;
+		}
+
+		const query = { _id: userInSession.userId };
+		const userInDb = await findUserInDb(query, res);
+
+		if (!userInDb) {
+			res.status(401).send('Access denied');
+			return false;
+		}
+
+		return true;
+	} catch (err) {
+		console.error('Error while validating token', err.message);
+	}
+}
+
+export async function validateAccountId(ID, token, res) {
+	if (!token) {
+		res.status(404).send();
+		return false;
+	}
+
+	try {
+		const db = getDb();
+		const accountsCollection = db.collection('accounts');
+
+		const userInSession = await findUserInSession(token);
+		const sameIdAccount = await accountsCollection.findOne({
+			_id: ObjectId(ID),
+			userId: userInSession.userId,
+		});
+
+		if (!sameIdAccount) {
+			res.status(404).send();
+			return false;
+		}
+
+		return true;
+	} catch (err) {
+		console.error('Error while validating token', err.message);
+	}
+}
+
+export async function deleteUserAccount(ID) {
+	try {
+		const db = getDb();
+		const accountsCollection = db.collection('accounts');
+		await accountsCollection.deleteOne({ _id: ObjectId(ID) });
+	} catch (err) {
+		console.error('Error while validating token', err.message);
 	}
 }

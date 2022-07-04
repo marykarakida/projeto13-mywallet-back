@@ -1,4 +1,8 @@
-import { createAccount, getUserAccounts } from '../database/dbAccess.js';
+import {
+	createAccount,
+	getUserAccounts,
+	deleteUserAccount,
+} from '../database/dbAccess.js';
 
 export async function getAccountsList(req, res, next) {
 	const { token } = res.locals;
@@ -14,10 +18,22 @@ export async function getAccountsList(req, res, next) {
 }
 
 export function postAccount(req, res, next) {
-	const { user, account } = res.locals;
+	const { token, account } = res.locals;
 
 	try {
-		createAccount(user, account);
+		createAccount(token, account);
+
+		res.status(201).send();
+	} catch (err) {
+		console.error('Error while posting new account', err.message);
+		next(err);
+	}
+}
+
+export function deleteAccount(req, res, next) {
+	const { ID } = req.params;
+	try {
+		deleteUserAccount(ID);
 
 		res.status(201).send();
 	} catch (err) {
