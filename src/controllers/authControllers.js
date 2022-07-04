@@ -1,4 +1,4 @@
-import { createNewUser, createNewSession } from '../database/dbAccess.js';
+import { createNewUser, createNewSession } from "../database/dbAccess.js";
 
 export function registerUser(req, res, next) {
 	const user = res.locals.user;
@@ -6,9 +6,9 @@ export function registerUser(req, res, next) {
 	try {
 		createNewUser(user, res);
 
-		res.status(201).send('User registered');
+		res.status(201).send("User registered");
 	} catch (err) {
-		console.error('Error while registering new user', err.message);
+		console.error("Error while registering new user", err.message);
 		next(err);
 	}
 }
@@ -26,7 +26,7 @@ export async function allowAppAccess(req, res, next) {
 
 		res.status(201).send(userInfo);
 	} catch (err) {
-		console.error('Error while allowing user access to app', err.message);
+		console.error("Error while allowing user access to app", err.message);
 		next(err);
 	}
 }

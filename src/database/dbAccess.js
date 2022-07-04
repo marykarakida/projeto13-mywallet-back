@@ -3,14 +3,12 @@ import { v4 as uuid } from 'uuid';
 
 import getDb from './mongodb.js';
 
-export async function findUserInDb(user, res) {
-	const { email } = user;
-
+export async function findUserInDb(query, res) {
 	try {
 		const db = getDb();
 		const registeredUserCollection = db.collection('registered_users');
 
-		return await registeredUserCollection.findOne({ email });
+		return await registeredUserCollection.findOne(query);
 	} catch (err) {
 		console.error(err);
 		return res.status(500).send();
@@ -54,6 +52,41 @@ export async function createNewSession(userId) {
 		await sessionsCollection.insertOne(newSession);
 
 		return token;
+	} catch (err) {
+		console.error(err);
+		return res.status(500).send();
+	}
+}
+
+export async function findUserInSession(token) {
+	try {
+		const db = getDb();
+		const user = await db.collection('sessions').findOne({ token });
+
+		return user;
+	} catch (err) {
+		console.error(err);
+		return res.status(500).send();
+	}
+}
+
+export async function createAccount(user, account) {
+	const { userId } = user;
+
+	try {
+		const db = getDb();
+
+		const newAccount = {
+			...account,
+			userId,
+		};
+		await db.collection('accounts').insertOne(newAccount);
+
+		const a = await db.collection('accounts').find().toArray();
+
+		console.log(a);
+
+		return user;
 	} catch (err) {
 		console.error(err);
 		return res.status(500).send();

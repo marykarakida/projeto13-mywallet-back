@@ -1,5 +1,6 @@
 import express from 'express';
 
+import { validateNewAccount } from '../middlewares/accountValidation.js';
 import {
 	getAccountsList,
 	getTotalBalance,
@@ -9,7 +10,7 @@ import {
 const router = express.Router();
 
 router.get('/', getAccountsList);
-router.post('/', postAccount);
+router.post('/', validateNewAccount, postAccount);
 router.get('/total-balance', getTotalBalance);
 
 export default router;
