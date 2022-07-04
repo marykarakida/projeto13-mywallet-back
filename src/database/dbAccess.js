@@ -104,7 +104,7 @@ export async function getUserAccounts(token) {
 			])
 			.toArray();
 
-		const totalBalance = accountsInfo[0].total - accountsInfo[1].total;
+		const totalBalance = accountsInfo[1].total - accountsInfo[0].total;
 
 		return { accounts, totalBalance };
 	} catch (err) {
